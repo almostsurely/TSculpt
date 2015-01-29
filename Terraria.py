@@ -15,6 +15,70 @@ def get_pstring(f):
     return ''.join([c.decode() for c in string])
 
 
+class WorldFormatException(Exception):
+    def __init__(self, msg):
+        self.message = msg
+        Exception.__init__(self, 'WorldFormatException: %s' % msg)
+
+
+class World:
+    """
+    World Object for Terraria.
+    """
+
+    min_version = 102  # Minimum world version this application is designed to handle.
+
+    def __init__(self):
+        """
+        Initializes the World Object.
+        :return:
+        """
+
+        self.version = None
+        self.section_count = None
+        self.section_pointers = ()
+        self.tile_type_count = None
+        self.tile_importance = []
+
+        self.header = Header()
+
+    def load_world(self, f):
+        """
+        Loads the World from file (f).
+        :param f:
+        :return:
+        """
+
+        self.version = unpack('<i', f.read(4))[0]
+
+        if self.version < World.min_version:
+            raise WorldFormatException('World version %i is below minimally supported version of %i.' %
+                                       (self.version, World.min_version))
+
+        self.section_count = unpack('<h', f.read(2))[0]
+        self.section_pointers = unpack('i' * self.section_count, f.read(self.section_count * 4))
+        self.tile_type_count = unpack('<h', f.read(2))[0]
+
+        mask = 0x80
+        flags = 0
+        for i in range(0, self.tile_type_count):
+            if mask == 0x80:
+                mask = 0x01
+                flags = unpack('<B', f.read(1))[0]
+            else:
+                mask <<= 1
+
+            if flags & mask != 0:
+                self.tile_importance.append(True)
+            else:
+                self.tile_importance.append(False)
+
+        if f.tell() != self.section_pointers[0]:
+            raise WorldFormatException('Header location off from section pointer.')
+
+        self.header.load_header(f, self.section_pointers[0])
+
+
 class Header:
     """
     Header of the Terraria World Object.
