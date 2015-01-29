@@ -41,6 +41,7 @@ class World:
         self.tile_importance = []
 
         self.header = Header()
+        self.map = Map()
 
     def load_world(self, f):
         """
@@ -59,6 +60,7 @@ class World:
         self.section_pointers = unpack('i' * self.section_count, f.read(self.section_count * 4))
         self.tile_type_count = unpack('<h', f.read(2))[0]
 
+        self.tile_importance = []
         mask = 0x80
         flags = 0
         for i in range(0, self.tile_type_count):
@@ -77,6 +79,14 @@ class World:
             raise WorldFormatException('Header location off from section pointer.')
 
         self.header.load_header(f, self.section_pointers[0])
+
+        if f.tell() != self.section_pointers[1]:
+            raise WorldFormatException('Map location off from section pointer.')
+
+        self.map.load_map(f, self.section_pointers[1], self.header.x_tiles, self.header.y_tiles, self.tile_importance)
+
+        if f.tell() != self.section_pointers[2]:
+            raise WorldFormatException('Chest location off from section pointer.')
 
 
 class Header:
@@ -249,3 +259,173 @@ class Header:
         self.num_anglers = unpack('<i', f.read(4))[0]
         self.is_angler_saved = unpack('<?', f.read(1))[0]
         self.angler_quest = unpack('<i', f.read(4))[0]
+
+
+class Map():
+    """
+    Object representing a map in Terraria
+    """
+
+    def __init__(self):
+        """
+        Initializes the Map Object
+        :return:
+        """
+
+        self.x_tiles = 0
+        self.y_tiles = 0
+        self.map = []
+
+    def load_map(self, f, index, x_tiles, y_tiles, tile_importance):
+        """
+        Loads the Map from file (f) starting at (index)
+        :param f:
+        :param index:
+        :param x_tiles:
+        :param y_tiles:
+        :param tile_importance:
+        :return:
+        """
+
+        self.x_tiles = x_tiles
+        self.y_tiles = y_tiles
+
+        f.seek(index)
+        for x in range(0, self.x_tiles):
+            self.map.append([])
+
+            rle = 0
+
+            tile = None
+
+            for y in range(0, self.y_tiles):
+
+                if rle > 0:
+                    self.map[x].append(tile.clone())
+                    rle -= 1
+                    continue
+
+                tile = Tile()
+
+                header_1 = unpack('<B', f.read(1))[0]
+                header_2 = 0
+                header_3 = 0
+
+                if header_1 & 1 == 1:
+                    header_2 = unpack('<B', f.read(1))[0]
+
+                    if header_2 & 1 == 1:
+                        header_3 = unpack('<B', f.read(1))[0]
+
+                if header_1 & 2 == 2:
+                    if (header_1 & 32) != 32:
+                        tile.tile_type = unpack('<B', f.read(1))[0]
+                    else:
+                        lower_byte = unpack('<B', f.read(1))[0]
+                        upper_byte = unpack('<B', f.read(1))[0]
+                        tile.tile_type = (upper_byte << 8) | lower_byte
+
+                    if not tile_importance[tile.tile_type]:
+                        tile.u = -1
+                        tile.v = -1
+                    else:
+                        tile.u = unpack('<h', f.read(2))[0]
+                        tile.v = unpack('<h', f.read(2))[0]
+
+                    if header_3 & 8 == 8:
+                        tile.color = unpack('<B', f.read(1))[0]
+
+                if header_1 & 4 == 4:
+                    tile.wall = unpack('<B', f.read(1))[0]
+
+                    if header_3 & 16 == 16:
+                        tile.wall_color = unpack('<B', f.read(1))[0]
+
+                tile.liquid_type = header_1 & 24
+
+                if tile.liquid_type != 0:
+
+                    tile.liquid_amount = unpack('<B', f.read(1))[0]
+
+                if header_2 > 1:
+                    if header_2 & 2 == 2:
+                        tile.wire_red = True
+                    if header_2 & 4 == 4:
+                        tile.wire_green = True
+                    if header_2 & 8 == 8:
+                        tile.wire_blue = True
+
+                    tile.brick_style = (header_2 & 112) >> 4
+
+                if header_3 > 0:
+                    if header_3 & 2 == 2:
+                        tile.actuator = True
+                    if header_3 & 4 == 4:
+                        tile.act_inactive = True
+
+                rle_type = (header_1 & 192) >> 6
+
+                if rle_type == 0:
+                    rle = 0
+                elif rle_type != 1:
+                    rle = unpack('<h', f.read(2))[0]
+                else:
+                    rle = unpack('<B', f.read(1))[0]
+
+                self.map[x].append(tile)
+
+
+class Tile():
+    """
+    Object representing a single Tile in Terraria
+    """
+
+    def __init__(self):
+        """
+        Initializes the Tile Object
+        :return:
+        """
+
+        self.active = False
+        self.tile_type = None
+        self.u = None
+        self.v = None
+        self.color = None
+        self.wall = None
+        self.wall_color = None
+        self.liquid_type = None
+        self.liquid_amount = None
+        self.wire_red = False
+        self.wire_blue = False
+        self.wire_green = False
+        self.brick_style = 0
+        self.actuator = False
+        self.actuator_inactive = False
+
+    def clone(self):
+        """
+        Returns a copy of self tile object.
+        :return: tile
+        :return type: Tile
+        """
+
+        tile = Tile()
+
+        tile.active = self.active
+        tile.tile_type = self.tile_type
+        tile.u = self.u
+        tile.v = self.v
+        tile.color = self.color
+        tile.wall = self.wall
+        tile.wall_color = self.wall_color
+        tile.liquid_type = self.liquid_type
+        tile.liquid_amount = self.liquid_amount
+        tile.wire_red = self.wire_red
+        tile.wire_blue = self.wire_blue
+        tile.wire_green = self.wire_green
+        tile.brick_style = self.brick_style
+        tile.actuator = self.actuator
+        tile.actuator_inactive = self.actuator_inactive
+
+        return tile
+
