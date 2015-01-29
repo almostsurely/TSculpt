@@ -43,6 +43,7 @@ class World:
         self.header = Header()
         self.map = Map()
         self.chests = Chests()
+        self.signs = Signs()
 
     def load_world(self, f):
         """
@@ -93,6 +94,11 @@ class World:
 
         if f.tell() != self.section_pointers[3]:
             raise WorldFormatException('Sign location off from section pointer.')
+
+        self.signs.load_signs(f, self.section_pointers[3])
+
+        if f.tell() != self.section_pointers[4]:
+            raise WorldFormatException('NPC location off from section pointer')
 
 
 class Header:
@@ -501,3 +507,55 @@ class Chest():
         self.y = None
         self.name = ''
         self.items = []
+
+
+class Signs():
+    """
+    Object representing the Signs section in the World Object
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object.
+        :return:
+        """
+
+        self.total_signs = 0
+        self.signs = []
+
+    def load_signs(self, f, index):
+        """
+        Loads signs from file (f) starting at (index)
+        :param f:
+        :param index:
+        :return:
+        """
+
+        f.seek(index)
+
+        self.total_signs = unpack('<h', f.read(2))[0]
+
+        for i in range(0, self.total_signs):
+            sign = Sign()
+
+            sign.text = get_pstring(f)
+            sign.x = unpack('<i', f.read(4))[0]
+            sign.y = unpack('<i', f.read(4))[0]
+
+            self.signs.append(sign)
+
+
+class Sign():
+    """
+    Object representing a Sign in Terraria
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object
+        :return:
+        """
+
+        self.text = ''
+        self.x = None
+        self.y = None
