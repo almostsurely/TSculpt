@@ -42,6 +42,7 @@ class World:
 
         self.header = Header()
         self.map = Map()
+        self.chests = Chests()
 
     def load_world(self, f):
         """
@@ -87,6 +88,11 @@ class World:
 
         if f.tell() != self.section_pointers[2]:
             raise WorldFormatException('Chest location off from section pointer.')
+
+        self.chests.load_chests(f, self.section_pointers[2])
+
+        if f.tell() != self.section_pointers[3]:
+            raise WorldFormatException('Sign location off from section pointer.')
 
 
 class Header:
@@ -429,3 +435,69 @@ class Tile():
 
         return tile
 
+
+class Chests():
+    """
+    Object representing the Chest Section of the World Object/File
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object
+        :return:
+        """
+        self.total_chests = None
+        self.max_items = None
+        self.chests = []
+
+    def load_chests(self, f, index):
+        """
+        Load chests from file (f) starting at (index)
+        :param f:
+        :param index:
+        :return:
+        """
+
+        f.seek(index)
+
+        self.total_chests = unpack('<h', f.read(2))[0]
+        self.max_items = unpack('<h', f.read(2))[0]
+
+        for i in range(0, self.total_chests):
+            chest = Chest()
+
+            chest.x = unpack('<i', f.read(4))[0]
+            chest.y = unpack('<i', f.read(4))[0]
+            chest.name = get_pstring(f)
+
+            for j in range(0, self.max_items):
+                chest.items.append([])
+
+                stack_size = unpack('<h', f.read(2))[0]
+                item_id = None
+                item_prefix = None
+
+                if stack_size > 0:
+                    item_id = unpack('<i', f.read(4))[0]
+                    item_prefix = unpack('<B', f.read(1))[0]
+
+                chest.items[j] = [stack_size, item_id, item_prefix]
+
+            self.chests.append(chest)
+
+
+class Chest():
+    """
+    Object representing a Chest in the World Object
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object
+        :return:
+        """
+
+        self.x = None
+        self.y = None
+        self.name = ''
+        self.items = []
