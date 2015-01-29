@@ -44,6 +44,7 @@ class World:
         self.map = Map()
         self.chests = Chests()
         self.signs = Signs()
+        self.npcs = NPCs()
 
     def load_world(self, f):
         """
@@ -99,6 +100,11 @@ class World:
 
         if f.tell() != self.section_pointers[4]:
             raise WorldFormatException('NPC location off from section pointer')
+
+        self.npcs.load_npcs(f, self.section_pointers[4])
+
+        if f.tell() != self.section_pointers[5]:
+            raise WorldFormatException('Footer location off from section pointer.')
 
 
 class Header:
@@ -559,3 +565,60 @@ class Sign():
         self.text = ''
         self.x = None
         self.y = None
+
+
+class NPCs():
+    """
+    Object representing the NPCs Section of the World Object/File
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object
+        :return:
+        """
+
+        self.npcs = []
+
+    def load_npcs(self, f, index):
+        """
+        Load the NPCs from file (f) starting at (index)
+        :param f:
+        :param index:
+        :return:
+        """
+
+        f.seek(index)
+
+        while unpack('<?', f.read(1))[0]:
+            npc = NPC()
+
+            npc.name = get_pstring(f)
+            npc.display_name = get_pstring(f)
+            npc.x = unpack('<f', f.read(4))[0]
+            npc.y = unpack('<f', f.read(4))[0]
+            npc.is_homeless = unpack('<?', f.read(1))[0]
+            npc.home_x = unpack('<i', f.read(4))[0]
+            npc.home_y = unpack('<i', f.read(4))[0]
+
+            self.npcs.append(npc)
+
+
+class NPC():
+    """
+    Object representing an NPC in Terraria
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object
+        :return:
+        """
+
+        self.name = None
+        self.display_name = None
+        self.x = None
+        self.y = None
+        self.is_homeless = True
+        self.home_x = None
+        self.home_y = None
