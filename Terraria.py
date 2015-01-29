@@ -45,6 +45,7 @@ class World:
         self.chests = Chests()
         self.signs = Signs()
         self.npcs = NPCs()
+        self.footer = Footer()
 
     def load_world(self, f):
         """
@@ -105,6 +106,8 @@ class World:
 
         if f.tell() != self.section_pointers[5]:
             raise WorldFormatException('Footer location off from section pointer.')
+
+        self.footer.load_footer(f, self.section_pointers[5])
 
 
 class Header:
@@ -622,3 +625,33 @@ class NPC():
         self.is_homeless = True
         self.home_x = None
         self.home_y = None
+
+
+class Footer():
+    """
+    Object representing the Footer of the World File
+    """
+
+    def __init__(self):
+        """
+        Initializes the Object
+        :return:
+        """
+
+        self.valid = False
+        self.title = ''
+        self.world_id = None
+
+    def load_footer(self, f, index):
+        """
+        Loads the footer from file (f) starting at (index)
+        :param f:
+        :param index:
+        :return:
+        """
+
+        f.seek(index)
+
+        self.valid = unpack('<?', f.read(1))[0]
+        self.title = get_pstring(f)
+        self.world_id = unpack('<i', f.read(4))[0]
