@@ -160,10 +160,10 @@ class Header:
         self.y_tiles = None
         self.x_tiles = None
         self.moon_type = None
-        self.tree_x = None
-        self.tree_style = None
-        self.cave_back_x = None
-        self.cave_back_style = None
+        self.tree_x = ()
+        self.tree_style = ()
+        self.cave_back_x = ()
+        self.cave_back_style = ()
         self.ice_back_style = None
         self.jungle_back_style = None
         self.hell_back_style = None
@@ -333,13 +333,13 @@ class Header:
             return False
         if self.moon_type is None:
             return False
-        if self.tree_x is None:
+        if len(self.tree_x) == 0:
             return False
-        if self.tree_style is None:
+        if len(self.tree_style) == 0:
             return False
-        if self.cave_back_x is None:
+        if len(self.cave_back_x) == 0:
             return False
-        if self.cave_back_style is None:
+        if len(self.cave_back_style) == 0:
             return False
         if self.ice_back_style is None:
             return False
