@@ -109,6 +109,36 @@ class World:
 
         self.footer.load_footer(f, self.section_pointers[5])
 
+    def validate(self):
+        """
+        Returns if the world is valid and ready for saving.
+        :return:
+        """
+        if self.version is None:
+            return False
+        if self.section_count is None:
+            return False
+        if len(self.section_pointers) == 0:
+            return False
+        if self.tile_type_count is None:
+            return False
+        if len(self.tile_importance) == 0:
+            return False
+        if not self.header.validate():
+            return False
+        if not self.map.validate():
+            return False
+        if not self.chests.validate():
+            return False
+        if not self.signs.validate():
+            return False
+        if not self.npcs.validate():
+            return False
+        if not self.footer.validate():
+            return False
+
+        return True
+
 
 class Header:
     """
@@ -281,6 +311,161 @@ class Header:
         self.is_angler_saved = unpack('<?', f.read(1))[0]
         self.angler_quest = unpack('<i', f.read(4))[0]
 
+    def validate(self):
+        """
+        Validates that the Header is accurate.
+        :return:
+        """
+
+        if self.world_id is None:
+            return False
+        if self.x is None:
+            return False
+        if self.w is None:
+            return False
+        if self.y is None:
+            return False
+        if self.h is None:
+            return False
+        if self.y_tiles is None:
+            return False
+        if self.x_tiles is None:
+            return False
+        if self.moon_type is None:
+            return False
+        if self.tree_x is None:
+            return False
+        if self.tree_style is None:
+            return False
+        if self.cave_back_x is None:
+            return False
+        if self.cave_back_style is None:
+            return False
+        if self.ice_back_style is None:
+            return False
+        if self.jungle_back_style is None:
+            return False
+        if self.hell_back_style is None:
+            return False
+        if self.spawn_x is None:
+            return False
+        if self.spawn_y is None:
+            return False
+        if self.surface_level is None:
+            return False
+        if self.rock_layer is None:
+            return False
+        if self.temp_time is None:
+            return False
+        if self.is_day is None:
+            return False
+        if self.moon_phase is None:
+            return False
+        if self.is_blood_moon is None:
+            return False
+        if self.is_eclipse is None:
+            return False
+        if self.dungeon_x is None:
+            return False
+        if self.dungeon_y is None:
+            return False
+        if self.is_crimson is None:
+            return False
+        if self.is_boss_1_dead is None:
+            return False
+        if self.is_boss_2_dead is None:
+            return False
+        if self.is_boss_3_dead is None:
+            return False
+        if self.is_queen_bee_dead is None:
+            return False
+        if self.is_mech_1_dead is None:
+            return False
+        if self.is_mech_2_dead is None:
+            return False
+        if self.is_mech_3_dead is None:
+            return False
+        if self.is_any_mech_dead is None:
+            return False
+        if self.is_plant_dead is None:
+            return False
+        if self.is_golem_dead is None:
+            return False
+        if self.is_goblin_saved is None:
+            return False
+        if self.is_wizard_saved is None:
+            return False
+        if self.is_mechanic_saved is None:
+            return False
+        if self.is_goblins_beat is None:
+            return False
+        if self.is_clown_beat is None:
+            return False
+        if self.is_frost_beat is None:
+            return False
+        if self.is_pirates_beat is None:
+            return False
+        if self.is_orb_smashed is None:
+            return False
+        if self.is_meteor_spawned is None:
+            return False
+        if self.orb_smash_count is None:
+            return False
+        if self.altar_count is None:
+            return False
+        if self.is_hard_mode is None:
+            return False
+        if self.invasion_delay is None:
+            return False
+        if self.invasion_size is None:
+            return False
+        if self.invasion_type is None:
+            return False
+        if self.invasion_x is None:
+            return False
+        if self.is_temp_raining is None:
+            return False
+        if self.temp_rain_time is None:
+            return False
+        if self.temp_max_rain is None:
+            return False
+        if self.ore_tier_1 is None:
+            return False
+        if self.ore_tier_2 is None:
+            return False
+        if self.ore_tier_3 is None:
+            return False
+        if self.bg_tree is None:
+            return False
+        if self.bg_corruption is None:
+            return False
+        if self.bg_jungle is None:
+            return False
+        if self.bg_snow is None:
+            return False
+        if self.bg_hallow is None:
+            return False
+        if self.bg_crimson is None:
+            return False
+        if self.bg_desert is None:
+            return False
+        if self.bg_ocean is None:
+            return False
+        if self.cloud_bg_active is None:
+            return False
+        if self.num_clouds is None:
+            return False
+        if self.wind_speed_set is None:
+            return False
+        if self.num_anglers is None:
+            return False
+        if self.is_angler_saved is None:
+            return False
+        if self.angler_quest is None:
+            return False
+
+        return True
+
 
 class Map():
     """
@@ -395,6 +580,30 @@ class Map():
 
                 self.map[x].append(tile)
 
+    def validate(self):
+        """
+        Validates that the Map is good and ready to save
+        :return:
+        """
+
+        if self.x_tiles == 0:
+            return False
+        if self.y_tiles == 0:
+            return False
+        if len(self.map) == 0:
+            return False
+        if len(self.map) != self.x_tiles:
+            return False
+        for x in range(0, self.x_tiles):
+            if len(self.map[x]) != self.y_tiles:
+                return False
+            for y in range(0, self.y_tiles):
+                if not self.map[x][y].validate():
+                    return False
+                pass
+
+        return True
+
 
 class Tile():
     """
@@ -450,6 +659,19 @@ class Tile():
 
         return tile
 
+    def validate(self):
+        """
+        Validates the Tile
+        :return:
+        """
+        if self.active is False:
+            return True
+        else:
+            if self.tile_type is None:
+                return False
+
+        return True
+
 
 class Chests():
     """
@@ -500,6 +722,21 @@ class Chests():
 
             self.chests.append(chest)
 
+    def validate(self):
+        """
+        Validates all the chests
+        :return:
+        """
+
+        if self.max_items is None:
+            return False
+
+        for chest in self.chests:
+            if not chest.validate():
+                return False
+
+        return True
+
 
 class Chest():
     """
@@ -516,6 +753,20 @@ class Chest():
         self.y = None
         self.name = ''
         self.items = []
+
+    def validate(self):
+        """
+        Validates the chest
+        :return:
+        """
+        if self.x is None:
+            return False
+        if self.y is None:
+            return False
+        if len(self.items) == 0:
+            return False
+
+        return True
 
 
 class Signs():
@@ -553,6 +804,18 @@ class Signs():
 
             self.signs.append(sign)
 
+    def validate(self):
+        """
+        Validates that all signs are valid
+        :return:
+        """
+
+        for sign in self.signs:
+            if not sign.validate():
+                return False
+
+        return True
+
 
 class Sign():
     """
@@ -568,6 +831,23 @@ class Sign():
         self.text = ''
         self.x = None
         self.y = None
+
+    def validate(self):
+        """
+        Validates the Sign
+        :return: valid
+        """
+
+        if self.text == '':
+            return False
+
+        if self.x is None:
+            return False
+
+        if self.y is None:
+            return False
+
+        return True
 
 
 class NPCs():
@@ -606,6 +886,18 @@ class NPCs():
 
             self.npcs.append(npc)
 
+    def validate(self):
+        """
+        Validates the NPC Section
+        :return : valid
+        """
+
+        for npc in self.npcs:
+            if not npc.validate():
+                return False
+
+        return True
+
 
 class NPC():
     """
@@ -618,13 +910,39 @@ class NPC():
         :return:
         """
 
-        self.name = None
-        self.display_name = None
+        self.name = ''
+        self.display_name = ''
         self.x = None
         self.y = None
         self.is_homeless = True
         self.home_x = None
         self.home_y = None
+
+    def validate(self):
+        """
+        Validates that this is an accurate NPC
+        :return:
+        """
+
+        if self.name == '':
+            return False
+
+        if self.display_name == '':
+            return False
+
+        if self.x is None:
+            return False
+
+        if self.y is None:
+            return False
+
+        if self.home_x is None:
+            return False
+
+        if self.home_y is None:
+            return False
+
+        return True
 
 
 class Footer():
@@ -655,3 +973,20 @@ class Footer():
         self.valid = unpack('<?', f.read(1))[0]
         self.title = get_pstring(f)
         self.world_id = unpack('<i', f.read(4))[0]
+
+    def validate(self):
+        """
+        Validates the Footer object as complete and ready to save.
+        :return:
+        """
+
+        if not self.valid:
+            return False
+
+        if self.title == '':
+            return False
+
+        if not self.world_id:
+            return False
+
+        return True
