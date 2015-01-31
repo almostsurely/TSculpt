@@ -15,6 +15,21 @@ def get_pstring(f):
     return ''.join([c.decode() for c in string])
 
 
+def store_pstring(string):
+    """
+    Returns (string) into a pascal string bytes.
+    :param string:
+    :return:
+    """
+
+    length_byte = pack('<B', len(string))
+
+    chars = [c.encode() for c in string]
+    string_bytes = pack('s' * len(chars), *chars)
+
+    return length_byte + string_bytes
+
+
 class WorldFormatException(Exception):
     def __init__(self, msg):
         self.message = msg
@@ -466,6 +481,90 @@ class Header:
 
         return True
 
+    def generate_bytestring(self):
+        """
+        Generates a bytestring to eventually save.
+        :return:
+        """
+        bstring = b''
+
+        bstring += store_pstring(self.world_name)
+        bstring += pack('<i', self.world_id)
+        bstring += pack('<i', self.x)
+        bstring += pack('<i', self.w)
+        bstring += pack('<i', self.y)
+        bstring += pack('<i', self.h)
+        bstring += pack('<i', self.y_tiles)
+        bstring += pack('<i', self.x_tiles)
+        bstring += pack('<B', self.moon_type)
+        bstring += pack('<iii', *self.tree_x)
+        bstring += pack('<iiii', *self.tree_style)
+        bstring += pack('<iii', *self.cave_back_x)
+        bstring += pack('<iiii', *self.cave_back_style)
+        bstring += pack('<i', self.ice_back_style)
+        bstring += pack('<i', self.jungle_back_style)
+        bstring += pack('<i', self.hell_back_style)
+        bstring += pack('<i', self.spawn_x)
+        bstring += pack('<i', self.spawn_y)
+        bstring += pack('<d', self.surface_level)
+        bstring += pack('<d', self.rock_layer)
+        bstring += pack('<d', self.temp_time)
+        bstring += pack('<?', self.is_day)
+        bstring += pack('<i', self.moon_phase)
+        bstring += pack('<?', self.is_blood_moon)
+        bstring += pack('<?', self.is_eclipse)
+        bstring += pack('<i', self.dungeon_x)
+        bstring += pack('<i', self.dungeon_y)
+        bstring += pack('<?', self.is_crimson)
+        bstring += pack('<?', self.is_boss_1_dead)
+        bstring += pack('<?', self.is_boss_2_dead)
+        bstring += pack('<?', self.is_boss_3_dead)
+        bstring += pack('<?', self.is_queen_bee_dead)
+        bstring += pack('<?', self.is_mech_1_dead)
+        bstring += pack('<?', self.is_mech_2_dead)
+        bstring += pack('<?', self.is_mech_3_dead)
+        bstring += pack('<?', self.is_any_mech_dead)
+        bstring += pack('<?', self.is_plant_dead)
+        bstring += pack('<?', self.is_golem_dead)
+        bstring += pack('<?', self.is_goblin_saved)
+        bstring += pack('<?', self.is_wizard_saved)
+        bstring += pack('<?', self.is_mechanic_saved)
+        bstring += pack('<?', self.is_goblins_beat)
+        bstring += pack('<?', self.is_clown_beat)
+        bstring += pack('<?', self.is_frost_beat)
+        bstring += pack('<?', self.is_pirates_beat)
+        bstring += pack('<?', self.is_orb_smashed)
+        bstring += pack('<?', self.is_meteor_spawned)
+        bstring += pack('<B', self.orb_smash_count)
+        bstring += pack('<i', self.altar_count)
+        bstring += pack('<?', self.is_hard_mode)
+        bstring += pack('<i', self.invasion_delay)
+        bstring += pack('<i', self.invasion_size)
+        bstring += pack('<i', self.invasion_type)
+        bstring += pack('<d', self.invasion_x)
+        bstring += pack('<?', self.is_temp_raining)
+        bstring += pack('<i', self.temp_rain_time)
+        bstring += pack('<f', self.temp_max_rain)
+        bstring += pack('<i', self.ore_tier_1)
+        bstring += pack('<i', self.ore_tier_2)
+        bstring += pack('<i', self.ore_tier_3)
+        bstring += pack('<B', self.bg_tree)
+        bstring += pack('<B', self.bg_corruption)
+        bstring += pack('<B', self.bg_jungle)
+        bstring += pack('<B', self.bg_snow)
+        bstring += pack('<B', self.bg_hallow)
+        bstring += pack('<B', self.bg_crimson)
+        bstring += pack('<B', self.bg_desert)
+        bstring += pack('<B', self.bg_ocean)
+        bstring += pack('<i', self.cloud_bg_active)
+        bstring += pack('<h', self.num_clouds)
+        bstring += pack('<f', self.wind_speed_set)
+        bstring += pack('<i', self.num_anglers)
+        bstring += pack('<?', self.is_angler_saved)
+        bstring += pack('<i', self.angler_quest)
+
+        return bstring
+
 
 class Map():
     """
@@ -604,6 +703,16 @@ class Map():
 
         return True
 
+    def generate_bytestring(self):
+        """
+        Generate a byte array for eventual saving.
+        :return:
+        """
+        for x in range(0, self.x_tiles):
+            rle = 0
+            for y in range(0, self.y_tiles):
+                pass
+
 
 class Tile():
     """
@@ -631,6 +740,34 @@ class Tile():
         self.brick_style = 0
         self.actuator = False
         self.actuator_inactive = False
+
+    def __eq__(self, other):
+        """
+        Tests if two Tiles are equal to one another.
+        :param other:
+        :return:
+        """
+
+        if isinstance(other, Tile):
+            return (
+                self.active == other.active and
+                self.tile_type == other.tile_type and
+                self.u == other.u and
+                self.v == other.v and
+                self.color == other.color and
+                self.wall == other.wall and
+                self.wall_color == other.wall_color and
+                self.liquid_type == other.liquid_type and
+                self.liquid_amount == other.liquid_amount and
+                self.wire_red == other.wire_red and
+                self.wire_blue == other.wire_blue and
+                self.wire_green == other.wire_green and
+                self.brick_style == other.brick_style and
+                self.actuator == other.actuator and
+                self.actuator_inactive == other.actuator_inactive
+            )
+        else:
+            return NotImplemented
 
     def clone(self):
         """
@@ -671,6 +808,83 @@ class Tile():
                 return False
 
         return True
+
+    def generate_bytestring(self):
+        """
+        Generate a byte array for the tile to eventually save.
+        :return:
+        """
+
+        bstring = b''
+
+        header_1 = 0
+        header_2 = 0
+        header_3 = 0
+
+        if self.active:
+            header_1 |= 2
+
+            if self.wall is not None:
+                header_1 |= 4
+
+            header_1 |= self.liquid_type
+
+            if self.tile_type > 255:
+                header_1 |= 32
+        else:
+            return header_1
+
+        if self.wire_red:
+            header_2 |= 2
+        if self.wire_blue:
+            header_2 |= 4
+        if self.wire_green:
+            header_2 |= 8
+        header_2 |= (self.brick_style << 4)
+
+        if self.actuator:
+            header_3 |= 2
+        if self.actuator_inactive:
+            header_3 |= 4
+        if self.color is not None:
+            header_3 |= 8
+        if self.wall_color is not None:
+            header_3 |= 16
+
+        if header_3 > 0:
+            header_2 |= 1
+        if header_2 > 0:
+            header_1 |= 1
+
+        bstring += pack('<B', header_1)
+        if header_1 & 1 == 1:
+            bstring += pack('<B', header_2)
+        if header_2 & 1 == 1:
+            bstring += pack('<B', header_3)
+
+        if self.tile_type is not None:
+            if self.tile_type < 255:
+                bstring += pack('<B', self.tile_type)
+            else:
+                bstring += pack('<h', self.tile_type)
+
+        if self.u >= 0 and self.v >= 0:
+            bstring += pack('<h', self.u)
+            bstring += pack('<h', self.v)
+
+        if self.color is not None:
+            bstring += pack('<B', self.color)
+
+        if self.wall is not None:
+            bstring += pack('<B', self.wall)
+
+        if self.wall_color is not None:
+            bstring += pack('<B', self.wall_color)
+
+        if self.liquid_amount is not None:
+            bstring += pack('<B', self.liquid_amount)
+
+        return bstring
 
 
 class Chests():
@@ -737,6 +951,31 @@ class Chests():
 
         return True
 
+    def generate_bytestring(self):
+        """
+        Generates a Bytestring to eventually save.
+        :return:
+        """
+
+        bstring = b''
+
+        bstring += pack('<h', self.total_chests)
+        bstring += pack('<h', self.max_items)
+
+        for chest in self.chests:
+            bstring += pack('<i', chest.x)
+            bstring += pack('<i', chest.y)
+            string = store_pstring(chest.name)
+            bstring += string
+
+            for item in chest.items:
+                bstring += pack('<h', item[0])
+                if item[0] > 0:
+                    bstring += pack('<i', item[1])
+                    bstring += pack('<B', item[2])
+
+        return bstring
+
 
 class Chest():
     """
@@ -765,6 +1004,12 @@ class Chest():
             return False
         if len(self.items) == 0:
             return False
+        for item in self.items:
+            if item[0] > 0:
+                if not item[1]:
+                    return False
+                if not item[2]:
+                    return False
 
         return True
 
@@ -815,6 +1060,23 @@ class Signs():
                 return False
 
         return True
+
+    def generate_bytestring(self):
+        """
+        Generates a bytestring for eventually saving.
+        :return:
+        """
+
+        bstring = b''
+
+        bstring += pack('<h', self.total_signs)
+
+        for sign in self.signs:
+            bstring += store_pstring(sign.text)
+            bstring += pack('<i', sign.x)
+            bstring += pack('<i', sign.y)
+
+        return bstring
 
 
 class Sign():
@@ -897,6 +1159,28 @@ class NPCs():
                 return False
 
         return True
+
+    def generate_bytestring(self):
+        """
+        Generate a bytestring for eventual storage.
+        :return:
+        """
+
+        bytestring = b''
+
+        for npc in self.npcs:
+            bytestring += pack('<?', True)
+            bytestring += store_pstring(npc.name)
+            bytestring += store_pstring(npc.display_name)
+            bytestring += pack('<f', npc.x)
+            bytestring += pack('<f', npc.y)
+            bytestring += pack('<?', npc.is_homeless)
+            bytestring += pack('<i', npc.home_x)
+            bytestring += pack('<i', npc.home_y)
+
+        bytestring += pack('<?', False)
+
+        return bytestring
 
 
 class NPC():
@@ -990,3 +1274,23 @@ class Footer():
             return False
 
         return True
+
+    def generate_bytestring(self):
+        """
+        Generate a bytestring for saving eventually
+        :return:
+        """
+
+        bstring = b''
+
+        bstring += pack('<?', self.valid)
+        bstring += store_pstring(self.title)
+        bstring += pack('<i', self.world_id)
+
+        return bstring
+
+world = World()
+
+with open('/home/james/Small_World.wld', 'rb') as file:
+    world.load_world(file)
+
