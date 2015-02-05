@@ -228,6 +228,29 @@ class World:
         file.write(npc_bytes)
         file.write(footer_bytes)
 
+    def change_name(self, name):
+        """
+        Change the name of the world.
+        :return:
+        """
+        self.header.world_name = name
+        self.footer.title = name
+
+    def clear_world(self):
+        """
+        Clear most of the settings in the world.
+        :return:
+        """
+        self.header.reset()
+
+        for x in range(0, self.map.x_tiles):
+            for y in range(0, self.map.y_tiles):
+                self.map.map[x][y] = Tile()
+
+        self.chests.clear_chests()
+        self.signs.clear_signs()
+        self.npcs.clear_npcs()
+
 
 class Header:
     """
@@ -638,6 +661,39 @@ class Header:
         bstring += pack('<i', self.angler_quest)
 
         return bstring
+
+    def reset(self):
+        """
+        Resets the majority of Header Settings. Leaves a few intact.
+        :return:
+        """
+        self.is_day = True
+        self.is_blood_moon = False
+        self.is_eclipse = False
+        self.is_boss_1_dead = False
+        self.is_boss_2_dead = False
+        self.is_boss_3_dead = False
+        self.is_queen_bee_dead = False
+        self.is_mech_1_dead = False
+        self.is_mech_2_dead = False
+        self.is_mech_3_dead = False
+        self.is_any_mech_dead = False
+        self.is_plant_dead = False
+        self.is_golem_dead = False
+        self.is_goblin_saved = False
+        self.is_wizard_saved = False
+        self.is_mechanic_saved = False
+        self.is_goblins_beat = False
+        self.is_clown_beat = False
+        self.is_frost_beat = False
+        self.is_pirates_beat = False
+        self.is_orb_smashed = False
+        self.is_meteor_spawned = False
+        self.orb_smash_count = 0
+        self.altar_count = 0
+        self.is_hard_mode = False
+        self.is_angler_saved = False
+        self.angler_quest = 0
 
 
 class Map():
@@ -1093,6 +1149,14 @@ class Chests():
 
         return bstring
 
+    def clear_chests(self):
+        """
+        Removes all of the chests
+        :return:
+        """
+        self.chests = []
+        self.total_chests = 0
+
 
 class Chest():
     """
@@ -1194,6 +1258,14 @@ class Signs():
             bstring += pack('<i', sign.y)
 
         return bstring
+
+    def clear_signs(self):
+        """
+        Removes all of the sign data
+        :return:
+        """
+        self.signs = []
+        self.total_signs = 0
 
 
 class Sign():
@@ -1298,6 +1370,13 @@ class NPCs():
         bytestring += pack('<?', False)
 
         return bytestring
+
+    def clear_npcs(self):
+        """
+        Clear all of the NPCS
+        :return:
+        """
+        self.npcs.clear()
 
 
 class NPC():
