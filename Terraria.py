@@ -103,6 +103,7 @@ class World:
             raise WorldFormatException('Map location off from section pointer.')
 
         self.map.load_map(f, self.section_pointers[1], self.header.x_tiles, self.header.y_tiles, self.tile_importance)
+        self.map.load_tile_importance(self.tile_importance)
 
         if f.tell() != self.section_pointers[2]:
             raise WorldFormatException('Chest location off from section pointer.')
@@ -580,6 +581,10 @@ class Map():
         self.x_tiles = 0
         self.y_tiles = 0
         self.map = []
+        self.tile_importance = None
+
+    def load_tile_importance(self, tile_importance):
+        self.tile_importance = tile_importance
 
     def load_map(self, f, index, x_tiles, y_tiles, tile_importance):
         """
@@ -623,6 +628,8 @@ class Map():
                         header_3 = unpack('<B', f.read(1))[0]
 
                 if header_1 & 2 == 2:
+                    tile.active = True
+
                     if (header_1 & 32) != 32:
                         tile.tile_type = unpack('<B', f.read(1))[0]
                     else:
@@ -652,7 +659,7 @@ class Map():
 
                     tile.liquid_amount = unpack('<B', f.read(1))[0]
 
-                if header_2 > 1:
+                if header_2 > 0:
                     if header_2 & 2 == 2:
                         tile.wire_red = True
                     if header_2 & 4 == 4:
@@ -705,13 +712,38 @@ class Map():
 
     def generate_bytestring(self):
         """
-        Generate a byte array for eventual saving.
+        Generate a bytestring for eventual saving.
         :return:
         """
+
+        blist = []
+
+        prev_tile = None
+        rle = 0
+
         for x in range(0, self.x_tiles):
-            rle = 0
             for y in range(0, self.y_tiles):
-                pass
+
+                tile = self.map[x][y]
+
+                if prev_tile is None:
+                    prev_tile = tile
+                    rle = 0
+                elif tile == prev_tile:
+                    rle += 1
+                else:
+                    blist.append([prev_tile.generate_bytestring(rle, self.tile_importance), prev_tile.tile_type, rle])
+                    rle = 0
+                    prev_tile = tile
+
+            if prev_tile is not None:
+                blist.append([prev_tile.generate_bytestring(rle, self.tile_importance), prev_tile.tile_type, rle])
+                prev_tile = None
+                rle = 0
+
+        bstring = b''.join(b[0] for b in blist)
+
+        return bstring
 
 
 class Tile():
@@ -727,12 +759,12 @@ class Tile():
 
         self.active = False
         self.tile_type = None
-        self.u = None
-        self.v = None
+        self.u = -1
+        self.v = -1
         self.color = None
         self.wall = None
         self.wall_color = None
-        self.liquid_type = None
+        self.liquid_type = 0
         self.liquid_amount = None
         self.wire_red = False
         self.wire_blue = False
@@ -809,7 +841,7 @@ class Tile():
 
         return True
 
-    def generate_bytestring(self):
+    def generate_bytestring(self, rle, tile_importance):
         """
         Generate a byte array for the tile to eventually save.
         :return:
@@ -821,26 +853,31 @@ class Tile():
         header_2 = 0
         header_3 = 0
 
+        if rle == 0:
+            pass
+        elif rle > 255:
+            header_1 |= 128
+        else:
+            header_1 |= 64
+
         if self.active:
             header_1 |= 2
 
-            if self.wall is not None:
-                header_1 |= 4
+        if self.wall is not None:
+            header_1 |= 4
 
-            header_1 |= self.liquid_type
-
-            if self.tile_type > 255:
-                header_1 |= 32
-        else:
-            return header_1
+        if self.tile_type is not None and self.tile_type > 255:
+            header_1 |= 32
 
         if self.wire_red:
             header_2 |= 2
-        if self.wire_blue:
-            header_2 |= 4
         if self.wire_green:
+            header_2 |= 4
+        if self.wire_blue:
             header_2 |= 8
-        header_2 |= (self.brick_style << 4)
+
+        if self.brick_style != 0:
+            header_2 |= (self.brick_style << 4)
 
         if self.actuator:
             header_3 |= 2
@@ -856,6 +893,8 @@ class Tile():
         if header_2 > 0:
             header_1 |= 1
 
+        header_1 |= self.liquid_type
+
         bstring += pack('<B', header_1)
         if header_1 & 1 == 1:
             bstring += pack('<B', header_2)
@@ -868,9 +907,9 @@ class Tile():
             else:
                 bstring += pack('<h', self.tile_type)
 
-        if self.u >= 0 and self.v >= 0:
-            bstring += pack('<h', self.u)
-            bstring += pack('<h', self.v)
+            if tile_importance[self.tile_type]:
+                bstring += pack('<h', self.u)
+                bstring += pack('<h', self.v)
 
         if self.color is not None:
             bstring += pack('<B', self.color)
@@ -881,8 +920,13 @@ class Tile():
         if self.wall_color is not None:
             bstring += pack('<B', self.wall_color)
 
-        if self.liquid_amount is not None:
+        if self.liquid_amount is not None and self.liquid_amount > 0:
             bstring += pack('<B', self.liquid_amount)
+
+        if rle > 255:
+            bstring += pack('<h', rle)
+        elif rle > 0:
+            bstring += pack('<B', rle)
 
         return bstring
 
@@ -1288,9 +1332,3 @@ class Footer():
         bstring += pack('<i', self.world_id)
 
         return bstring
-
-world = World()
-
-with open('/home/james/Small_World.wld', 'rb') as file:
-    world.load_world(file)
-
