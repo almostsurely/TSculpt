@@ -155,6 +155,79 @@ class World:
 
         return True
 
+    def save_world(self, file):
+        """
+        Saves the World File
+        :return:
+        """
+        version_bytes = pack('<i', 102)
+        section_count_bytes = pack('<h', 10)
+        tile_type_count_bytes = pack('<h', 340)
+
+        mask = 0x01
+        byte = 0
+        byte_list = []
+        for tile in self.tile_importance:
+            if tile:
+                byte |= mask
+
+            if mask == 0x80:
+                byte_list.append(pack('<B', byte))
+                mask = 0x01
+                byte = 0
+                continue
+            mask <<= 1
+
+        byte_list.append(pack('<B', byte))
+
+        tile_imprt_bytes = b''.join(byte_list)
+
+        header_bytes = self.header.generate_bytestring()
+        map_bytes = self.map.generate_bytestring()
+        chest_bytes = self.chests.generate_bytestring()
+        sign_bytes = self.signs.generate_bytestring()
+        npc_bytes = self.npcs.generate_bytestring()
+        footer_bytes = self.footer.generate_bytestring()
+
+        pointer = len(version_bytes)
+        pointer += len(section_count_bytes)
+        pointer += len(tile_type_count_bytes)
+        pointer += len(tile_imprt_bytes)
+        pointer += 40
+
+        pointers = []
+        pointers.append(pointer)
+        pointer += len(header_bytes)
+        pointers.append(pointer)
+        pointer += len(map_bytes)
+        pointers.append(pointer)
+        pointer += len(chest_bytes)
+        pointers.append(pointer)
+        pointer += len(sign_bytes)
+        pointers.append(pointer)
+        pointer += len(npc_bytes)
+        pointers.append(pointer)
+        pointers.append(0)
+        pointers.append(0)
+        pointers.append(0)
+        pointers.append(0)
+
+        pointer_bytes = b''
+        for p in pointers:
+            pointer_bytes += pack('<i', p)
+
+        file.write(version_bytes)
+        file.write(section_count_bytes)
+        file.write(pointer_bytes)
+        file.write(tile_type_count_bytes)
+        file.write(tile_imprt_bytes)
+        file.write(header_bytes)
+        file.write(map_bytes)
+        file.write(chest_bytes)
+        file.write(sign_bytes)
+        file.write(npc_bytes)
+        file.write(footer_bytes)
+
 
 class Header:
     """
