@@ -1059,6 +1059,50 @@ class Tile():
 
         return bstring
 
+    def desc(self):
+        """
+        Describes and returns the current tile.
+        :return:
+        """
+
+        desc = '''
+        Active Status: %s
+        Tile Type: %s
+        U: %s
+        V: %s
+        Color: %s
+        Wall: %s
+        Wall Color: %s
+        Liquid Type: %s
+        Liquid Amount: %s
+        Red Wire: %s
+        Green Wire: %s
+        Blue Wire: %s
+        Brick Style: %s
+        Actuator: %s
+        Actuator Inactive: %s
+        ''' % (
+            self.active,
+            self.tile_type,
+            self.u,
+            self.v,
+            self.color,
+            self.wall,
+            self.wall_color,
+            self.liquid_type,
+            self.liquid_amount,
+            self.wire_red,
+            self.wire_blue,
+            self.wire_green,
+            self.brick_style,
+            self.actuator,
+            self.actuator_inactive
+        )
+
+        return desc
+
+
+
 
 class Chests():
     """
@@ -1122,6 +1166,9 @@ class Chests():
             if not chest.validate():
                 return False
 
+        if self.total_chests != len(self.chests):
+            return False
+
         return True
 
     def generate_bytestring(self):
@@ -1131,6 +1178,8 @@ class Chests():
         """
 
         bstring = b''
+
+        self.total_chests = len(self.chests)
 
         bstring += pack('<h', self.total_chests)
         bstring += pack('<h', self.max_items)
@@ -1240,6 +1289,9 @@ class Signs():
             if not sign.validate():
                 return False
 
+        if self.total_signs != len(self.signs):
+            return False
+
         return True
 
     def generate_bytestring(self):
@@ -1250,7 +1302,7 @@ class Signs():
 
         bstring = b''
 
-        bstring += pack('<h', self.total_signs)
+        bstring += pack('<h', len(self.signs))
 
         for sign in self.signs:
             bstring += store_pstring(sign.text)
