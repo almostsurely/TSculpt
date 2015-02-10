@@ -9,6 +9,19 @@ class TSculpt_Tests(unittest.TestCase):
     def test_pstring(self):
         self.assertEqual(Terraria.store_pstring('Test'), b'\x04Test')
 
+    def test_world(self):
+        world = Terraria.World()
+
+        self.assertTrue(world.header.validate())
+        self.assertTrue(world.map.validate())
+        self.assertTrue(world.chests.validate())
+        self.assertTrue(world.signs.validate())
+        self.assertTrue(world.npcs.validate())
+        self.assertTrue(world.footer.validate())
+        self.assertTrue(world.validate())
+
+
+
     def test_tiles(self):
         #Tile Importance from a 1.2.4.1 world
         tile_importance = [

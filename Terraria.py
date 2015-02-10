@@ -49,11 +49,34 @@ class World:
         :return:
         """
 
-        self.version = None
-        self.section_count = None
-        self.section_pointers = ()
-        self.tile_type_count = None
-        self.tile_importance = []
+        #Numbers come from current 1.2.4.1 map constants
+        self.version = 102
+        self.section_count = 10
+        self.section_pointers = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        self.tile_type_count = 340
+        self.tile_importance = [
+            False, False, False, True, True, True, False, False, False, False, True, True, True, True, True, True,
+            True, True, True, True, True, True, False, False, True, False, True, True, True, True, False, True, False,
+            True, True, True, True, False, False, False, False, False, True, False, False, False, False, False, False,
+            False, True, False, False, False, False, True, False, False, False, False, False, True, False, False,
+            False, False, False, False, False, False, False, True, True, True, True, False, False, True, True, True,
+            False, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
+            True, True, True, True, True, True, True, True, True, True, False, False, False, True, False, False, True,
+            True, False, False, False, False, False, False, False, False, False, False, True, True, False, True, True,
+            False, False, True, True, True, True, True, True, True, True, False, True, True, True, True, False, False,
+            False, False, True, False, False, False, False, False, False, False, False, False, False, False, False,
+            False, False, False, True, False, False, False, False, False, True, False, True, True, False, False, False,
+            True, False, False, False, False, False, True, True, True, True, False, False, False, False, False, False,
+            False, False, False, False, False, False, False, True, False, False, False, False, False, True, False,
+            True, True, False, True, False, False, True, True, True, True, True, True, False, False, False, False,
+            False, False, True, True, False, False, True, False, True, False, True, True, True, True, True, True,
+            True, True, True, True, True, True, True, False, False, False, False, False, False, True, False, False,
+            False, False, False, False, False, False, False, False, False, False, False, False, True, True, True,
+            False, False, False, True, True, True, True, True, True, True, True, True, False, True, True, True, True,
+            True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True, True,
+            True, True, True, True, False, False, False, True, False, True, True, True, True, True, False, False, True,
+            True, False, False, False, False, False, False, False, False, False, True, True, False, True, True, True
+        ]
 
         self.header = Header()
         self.map = Map()
@@ -263,80 +286,81 @@ class Header:
         :return:
         """
 
+        #Defaults are based on 1.2.4.1 standards.
         self.world_name = 'Default'
-        self.world_id = None
-        self.x = None
-        self.w = None
-        self.y = None
-        self.h = None
-        self.y_tiles = None
-        self.x_tiles = None
-        self.moon_type = None
-        self.tree_x = ()
-        self.tree_style = ()
-        self.cave_back_x = ()
-        self.cave_back_style = ()
-        self.ice_back_style = None
-        self.jungle_back_style = None
-        self.hell_back_style = None
-        self.spawn_x = None
-        self.spawn_y = None
-        self.surface_level = None
-        self.rock_layer = None
-        self.temp_time = None
-        self.is_day = None
-        self.moon_phase = None
-        self.is_blood_moon = None
-        self.is_eclipse = None
-        self.dungeon_x = None
-        self.dungeon_y = None
-        self.is_crimson = None
-        self.is_boss_1_dead = None
-        self.is_boss_2_dead = None
-        self.is_boss_3_dead = None
-        self.is_queen_bee_dead = None
-        self.is_mech_1_dead = None
-        self.is_mech_2_dead = None
-        self.is_mech_3_dead = None
-        self.is_any_mech_dead = None
-        self.is_plant_dead = None
-        self.is_golem_dead = None
-        self.is_goblin_saved = None
-        self.is_wizard_saved = None
-        self.is_mechanic_saved = None
-        self.is_goblins_beat = None
-        self.is_clown_beat = None
-        self.is_frost_beat = None
-        self.is_pirates_beat = None
-        self.is_orb_smashed = None
-        self.is_meteor_spawned = None
-        self.orb_smash_count = None
-        self.altar_count = None
-        self.is_hard_mode = None
-        self.invasion_delay = None
-        self.invasion_size = None
-        self.invasion_type = None
-        self.invasion_x = None
-        self.is_temp_raining = None
-        self.temp_rain_time = None
-        self.temp_max_rain = None
-        self.ore_tier_1 = None
-        self.ore_tier_2 = None
-        self.ore_tier_3 = None
-        self.bg_tree = None
-        self.bg_corruption = None
-        self.bg_jungle = None
-        self.bg_snow = None
-        self.bg_hallow = None
-        self.bg_crimson = None
-        self.bg_desert = None
-        self.bg_ocean = None
-        self.cloud_bg_active = None
-        self.num_clouds = None
-        self.wind_speed_set = None
-        self.num_anglers = None
-        self.is_angler_saved = None
-        self.angler_quest = None
+        self.world_id = 0
+        self.x = 0
+        self.w = 67200
+        self.y = 0
+        self.h = 19200
+        self.y_tiles = 1200
+        self.x_tiles = 4200
+        self.moon_type = 0
+        self.tree_x = (4200, 4200, 4200)
+        self.tree_style = (0, 0, 0, 0)
+        self.cave_back_x = (4200, 4200, 4200)
+        self.cave_back_style = (0, 0, 0, 0)
+        self.ice_back_style = 0
+        self.jungle_back_style = 0
+        self.hell_back_style = 0
+        self.spawn_x = 2100
+        self.spawn_y = 300
+        self.surface_level = 300
+        self.rock_layer = 450
+        self.temp_time = 0.0
+        self.is_day = True
+        self.moon_phase = 0
+        self.is_blood_moon = False
+        self.is_eclipse = False
+        self.dungeon_x = 3500
+        self.dungeon_y = self.surface_level
+        self.is_crimson = False
+        self.is_boss_1_dead = False
+        self.is_boss_2_dead = False
+        self.is_boss_3_dead = False
+        self.is_queen_bee_dead = False
+        self.is_mech_1_dead = False
+        self.is_mech_2_dead = False
+        self.is_mech_3_dead = False
+        self.is_any_mech_dead = False
+        self.is_plant_dead = False
+        self.is_golem_dead = False
+        self.is_goblin_saved = False
+        self.is_wizard_saved = False
+        self.is_mechanic_saved = False
+        self.is_goblins_beat = False
+        self.is_clown_beat = False
+        self.is_frost_beat = False
+        self.is_pirates_beat = False
+        self.is_orb_smashed = False
+        self.is_meteor_spawned = False
+        self.orb_smash_count = 0
+        self.altar_count = 0
+        self.is_hard_mode = False
+        self.invasion_delay = 0
+        self.invasion_size = 0
+        self.invasion_type = 0
+        self.invasion_x = 2100
+        self.is_temp_raining = False
+        self.temp_rain_time = 0
+        self.temp_max_rain = 0
+        self.ore_tier_1 = 107
+        self.ore_tier_2 = 222
+        self.ore_tier_3 = 223
+        self.bg_tree = 0
+        self.bg_corruption = 0
+        self.bg_jungle = 0
+        self.bg_snow = 0
+        self.bg_hallow = 0
+        self.bg_crimson = 0
+        self.bg_desert = 0
+        self.bg_ocean = 0
+        self.cloud_bg_active = 0
+        self.num_clouds = 0
+        self.wind_speed_set = 0
+        self.num_anglers = 0
+        self.is_angler_saved = False
+        self.angler_quest = 0
 
     def load_header(self, f, index):
         """
@@ -707,9 +731,9 @@ class Map():
         :return:
         """
 
-        self.x_tiles = 0
-        self.y_tiles = 0
-        self.map = []
+        self.x_tiles = 4200
+        self.y_tiles = 1200
+        self.map = [[Tile()] * 1200] * 4200
         self.tile_importance = None
 
     def load_tile_importance(self, tile_importance):
@@ -1114,8 +1138,8 @@ class Chests():
         Initializes the Object
         :return:
         """
-        self.total_chests = None
-        self.max_items = None
+        self.total_chests = 0
+        self.max_items = 40
         self.chests = []
 
     def load_chests(self, f, index):
@@ -1488,9 +1512,9 @@ class Footer():
         :return:
         """
 
-        self.valid = False
-        self.title = ''
-        self.world_id = None
+        self.valid = True
+        self.title = 'Default'
+        self.world_id = 0
 
     def load_footer(self, f, index):
         """
@@ -1518,7 +1542,7 @@ class Footer():
         if self.title == '':
             return False
 
-        if not self.world_id:
+        if self.world_id is None:
             return False
 
         return True
