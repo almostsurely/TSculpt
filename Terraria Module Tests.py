@@ -3,6 +3,7 @@ __author__ = 'James Dozier'
 import unittest
 import Terraria
 import WorldGen
+import random
 
 class TSculpt_Tests(unittest.TestCase):
 
@@ -134,10 +135,18 @@ class TSculpt_Tests(unittest.TestCase):
         Test the World generation script
         :return:
         """
-        worldgen = WorldGen.WorldGenerator(Terraria.World())
+        world = Terraria.World()
+        worldgen = WorldGen.WorldGenerator(world)
 
         #Assert raises exception for wrong Tile_Type for adding signs.
         self.assertRaises(WorldGen.WorldGenerationException, worldgen.add_sign, 0, 0, 'Test', 44)
+
+        #Assert that dirt was filled out in underground
+        worldgen.fill_dirt()
+
+        test_y = random.randint(world.header.surface_level, 1000)
+        test_x = random.randint(0, 4200)
+        self.assertTrue(world.map.map[test_x][test_y].tile_type == 0)
 
 if __name__ == '__main__':
     unittest.main()

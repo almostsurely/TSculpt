@@ -22,6 +22,19 @@ class WorldGenerator():
         """
         self.world = world
 
+    def fill_dirt(self):
+        """
+        Fills in the layer between surface and underworld with dirt.
+        :return:
+        """
+        dirt = Terraria.Tile()
+        dirt.active = True
+        dirt.tile_type = 0
+
+        for x in range(0, self.world.header.x_tiles):
+            for y in range(self.world.header.surface_level, 1000):
+                self.world.map.map[x][y] = dirt.clone()
+
     def add_chest(self, x, y):
         """
         Adds a chest at the x, y location. Returns chest for Item Generation.
