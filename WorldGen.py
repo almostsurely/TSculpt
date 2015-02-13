@@ -1,6 +1,7 @@
 __author__ = 'James Dozier'
 
 import Terraria
+import random
 
 
 class WorldGenerationException(Exception):
@@ -34,6 +35,44 @@ class WorldGenerator():
         for x in range(0, self.world.header.x_tiles):
             for y in range(self.world.header.surface_level, 1000):
                 self.world.map.map[x][y] = dirt.clone()
+
+    @staticmethod
+    def should_spawn_ore(n, density, total):
+        """
+        Returns a boolean on if an ore cluster should be spawned.
+        :param n: Tile number in x column
+        :param density:
+        :param total:
+        :return:
+        """
+
+        percent = ((n * density) / total) / 100
+
+        return random.random() < percent
+
+    def spawn_ore(self, ore_type, density):
+        """
+        Spawns ore across the world.
+        :param ore_type:
+        :param density:
+        :return:
+        """
+        y_start = self.world.header.surface_level
+        y_end = 1000  # TODO: Change. Temp Value.
+        total = y_end - y_start
+
+        tile = Terraria.Tile()
+        tile.active = True
+        tile.tile_type = ore_type
+
+        for x in range(0, self.world.header.x_tiles):
+            for y in range(y_start, y_end):
+                n = y - y_start
+
+                if self.should_spawn_ore(n, density, total):
+                    print('Ore at: %s, %s' % (x, y))
+
+                    self.world.map.map[x][y] = tile.clone()
 
     def add_chest(self, x, y):
         """

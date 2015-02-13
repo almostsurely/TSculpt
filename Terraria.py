@@ -79,7 +79,7 @@ class World:
         ]
 
         self.header = Header()
-        self.map = Map()
+        self.map = Map(self.tile_importance)
         self.chests = Chests()
         self.signs = Signs()
         self.npcs = NPCs()
@@ -126,7 +126,6 @@ class World:
             raise WorldFormatException('Map location off from section pointer.')
 
         self.map.load_map(f, self.section_pointers[1], self.header.x_tiles, self.header.y_tiles, self.tile_importance)
-        self.map.load_tile_importance(self.tile_importance)
 
         if f.tell() != self.section_pointers[2]:
             raise WorldFormatException('Chest location off from section pointer.')
@@ -725,7 +724,7 @@ class Map():
     Object representing a map in Terraria
     """
 
-    def __init__(self):
+    def __init__(self, tile_importance):
         """
         Initializes the Map Object
         :return:
@@ -733,10 +732,11 @@ class Map():
 
         self.x_tiles = 4200
         self.y_tiles = 1200
-        self.map = [[Tile()] * 1200] * 4200
-        self.tile_importance = None
-
-    def load_tile_importance(self, tile_importance):
+        self.map = []
+        for x in range(0, self.x_tiles):
+            self.map.append([])
+            for y in range(0, self.y_tiles):
+                self.map[x].append(Tile())
         self.tile_importance = tile_importance
 
     def load_map(self, f, index, x_tiles, y_tiles, tile_importance):
@@ -752,6 +752,7 @@ class Map():
 
         self.x_tiles = x_tiles
         self.y_tiles = y_tiles
+        self.tile_importance = tile_importance
 
         f.seek(index)
         for x in range(0, self.x_tiles):
