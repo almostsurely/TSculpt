@@ -72,7 +72,62 @@ class WorldGenerator():
                 if self.should_spawn_ore(n, density, total):
                     print('Ore at: %s, %s' % (x, y))
 
-                    self.world.map.map[x][y] = tile.clone()
+                    ore_size = random.choice(range(30, 50))
+
+                    self.add_ore_cluster(x, y, ore_size, tile)
+
+    def add_ore_cluster(self, x, y, size, tile):
+        """
+        Spawns an ore cluster at x, y location
+        :param x:
+        :param y:
+        :param size:
+        :param tile:
+        :return:
+        """
+        map = self.world.map.map
+
+        a = int(size / (random.random() + 2))
+
+        if random.choice([True, False]):
+            size_x = a
+            size_y = size - a
+        else:
+            size_y = a
+            size_x = size - a
+
+        wiggle = 0
+
+        # For every row in the ore cluster area
+        for i in range(0, size_y):  # i stands for y
+
+            # Selects the number of tiles that should be generated for the cluster
+            center = int(size_y / 2)
+            num_tiles = size_x - int(((i - center) ** 2) / 5)
+
+            if num_tiles <= 0:
+                continue
+
+            # Generate a list with True to generate a tile and False to not.
+            half_non_tiles = int((size_x - num_tiles) / 2)
+            tile_list = [False] * half_non_tiles + [True] * num_tiles + [False] * (size_x - num_tiles - half_non_tiles)
+
+            # Shift the tiles
+            adj = random.choice(range(-2, 3))
+            wiggle += adj
+
+            for j in range(0, size_x):  # j stands for x
+                if tile_list[j]:
+                    b = x + j + wiggle
+                    c = y + i
+
+                    if b >= self.world.header.x_tiles or b < 0:
+                        continue
+
+                    if c >= self.world.header.y_tiles or c < 0:
+                        continue
+
+                    map[b][c] = tile.clone()
 
     def add_chest(self, x, y):
         """
